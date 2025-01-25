@@ -1,3 +1,4 @@
+--Создание таблицы
 CREATE TABLE product(
 "id" BIGINT GENERATED ALWAYS AS IDENTITY,
 "name" VARCHAR(10),
@@ -5,18 +6,23 @@ CREATE TABLE product(
 "date" DATE
 );
 
+--Наполнение столбцов
 INSERT INTO product("name", "code", "date")
 VALUES ('хлеб', 'hl','2000-01-01'),
 		('молоко', 'mlk', '2001-08-03'),
 		('грибы', 'grb', '2002-10-28');
 
+--Вывод таблицы по необходимым данным
 SELECT 
 	id, 
 	name AS "название товара", 
 	code AS "код товара", 
 	date AS "дата прихода товара"
-FROM product;		
+FROM product
+WHERE date BETWEEN '2000-01-01' AND  '2002-10-28' -- Фильтрация
+ORDER BY date, id ; -- Сортировка где DESC обратный порядок 
 
+--Изменение значений 
 UPDATE product 
 SET name = 'вишня'
 WHERE id = 7;
