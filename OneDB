@@ -1,0 +1,24 @@
+CREATE TABLE product(
+"id" BIGINT GENERATED ALWAYS AS IDENTITY,
+"name" VARCHAR(10),
+"code" CHAR(6),
+"date" DATE
+);
+
+INSERT INTO product("name", "code", "date")
+VALUES ('хлеб', 'hl','2000-01-01'),
+		('молоко', 'mlk', '2001-08-03'),
+		('грибы', 'grb', '2002-10-28');
+
+SELECT 
+	id, 
+	name AS "название товара", 
+	code AS "код товара", 
+	date AS "дата прихода товара"
+FROM product;		
+
+UPDATE product 
+SET name = 'вишня'
+WHERE id = 7;
+
+DELETE FROM product;
