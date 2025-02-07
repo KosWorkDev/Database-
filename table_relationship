@@ -1,0 +1,78 @@
+--Добавление таблицы без колонок 
+CREATE DATABASE "lessonDB"
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    LOCALE_PROVIDER = 'libc'
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False;
+
+	
+-- Создание таблицы с полями и ключем
+CREATE TABLE users(
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(70) NOT NULL,
+	surname VARCHAR(70) NOT NULL
+	
+);
+
+INSERT INTO users(name, surname)
+VALUES ('Ivan', 'Petrov'),
+		('Maria', 'Ivanova'),
+		('Vasay', 'Sidorov'),
+		('Anna', 'Smirnova'),
+		('Matvei', 'Termikov'),
+		('Olesay', 'Ibanchuk'),
+		('Daria', 'Avdeeva'),
+		('Roman', 'Surnin'),
+		('Petr', 'Hrushev');
+
+
+CREATE TABLE facultet(
+	id SERIAL PRIMARY KEY,
+	facultet VARCHAR(70)
+);
+
+INSERT INTO facultet (facultet)
+VALUES ('java'),
+	   ('c++'),
+	   ('python'),
+	   ('kotlin'),
+	   ('php');
+
+
+--СОздание связующей таблицы с внутриним ключём
+CREATE TABLE user_facultet(
+	user_id INT REFERENCES users(id),
+	facultet_id INT REFERENCES facultet(id),
+	PRIMARY KEY(user_id, facultet_id)
+);
+
+--Заполняем id пользователей и id факультетов 
+INSERT INTO user_facultet(user_id, facultet_id)
+VALUES (1,5),
+	   (2,3),
+	   (3,2),
+	   (4,1),
+	   (5,1),
+	   (6,4),
+	   (7,5),
+	   (8,3),
+	   (9,2);
+
+--Связь таблиц между собой
+--какие именно столбцы должны быть выбраны из таблиц
+SELECT u.name, u.surname, f.facultet
+--Откуда главная таблица присваеваем переменную u таблице user 
+FROM users u
+--соеденить from с таблицей user_facultet где присваем переменную uf
+JOIN user_facultet uf ON u.id = uf.user_id
+--соеденяем с верхней таблицей новое поле
+JOIN facultet f ON uf.facultet_id = f.id;
+
+
+--Ввывод таблицы
+SELECT * FROM users ORDER BY name DESC; 
+--после by указываем значения сортировки где DESC значение на оборот
+
+SELECT * FROM facultet ORDER BY facultet; 
