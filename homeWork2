@@ -1,0 +1,111 @@
+--Создание таблицы книги после созданий таблиц издательство и автор
+CREATE TABLE book (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(70) NOT NULL,
+    author_id INT,
+    publ_house_id INT,
+    
+    CONSTRAINT fk_book_author
+        FOREIGN KEY (author_id) REFERENCES author(id),
+        
+    CONSTRAINT fk_book_publ_house
+        FOREIGN KEY (publ_house_id) REFERENCES publishing_house(id)
+);
+
+--Создание таблицы автор
+CREATE TABLE author(
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(70)
+);
+
+--Создание таблицы издательство
+CREATE TABLE publishing_house(
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(70)
+);
+
+--Создание связующей таблицы книги-автор
+CREATE TABLE book_author (
+    book_id INT,
+    author_id INT,
+    PRIMARY KEY (book_id, author_id),
+    FOREIGN KEY (book_id) REFERENCES book(id),
+    FOREIGN KEY (author_id) REFERENCES author(id)
+);
+
+--Наполнение таблицы автор
+INSERT INTO author(name)
+VALUES ('Л.Н. Толстой'),
+       ('П.П. Бажов'),
+	   ('Ф.М. Достоевский'),
+	   ('А.П Чехов');
+
+--Наполнение названий книг
+INSERT INTO book(name)
+VALUES ('Анна Каренина'),
+       ('Война и мир'),
+	   ('Толстой и Бажов'),
+	   ('Медной горы хозяйка'),
+	   ('Серебренное копытцо'),
+	   ('Бажов и Достоевский'),
+	   ('Преступление и наказание'),
+	   ('Идиот'),
+	   ('Достоевский и Чехов'),
+	   ('Тарас Бульба'),
+	   ('Медведь');
+
+--Наполнение издательств
+INSERT INTO publishing_house(name)
+VALUES ('Просвящение'),
+	   ('Стрекоза'),
+	   ('Москва');
+
+--Заполнение связуюшей таблицы
+INSERT INTO book_author (book_id, author_id)
+VALUES (1,1),
+       (2,1),
+	   (3,1),
+	   (3,2),
+	   (4,2),
+	   (5,2),
+	   (6,2),
+	   (6,3),
+	   (7,3),
+	   (8,3),
+	   (9,3),
+	   (9,4),
+	   (10,4),
+	   (11,4);
+
+/*
+Выводит книги и авторов, но если одну книгу написали два автора
+то он выводит одну книгу два раза. Как от этого избавиться?
+
+*/
+SELECT b.name AS book, a.name AS author
+FROM book b
+JOIN book_author ba ON b.id = ba.book_id
+JOIN author a ON ba.author_id = a.id;
+
+--Вопрос!!!!!!!!
+
+/*
+При попытки вывода код который написал ниже столбцы выводит, 
+а значения нет! Это из-за того что я не сделал такую связующую таблицу?
+Или это ошибка которую я не могу понять?
+
+*/
+SELECT ph.name AS publishing_house, b.name AS book, a.name AS author
+FROM book b
+JOIN publishing_house ph ON b.publ_house_id = ph.id
+JOIN book_author ba ON b.id = ba.book_id
+JOIN author a ON b.author_id = a.id
+ORDER BY b.name;
+
+
+
+
+
+
+
+
