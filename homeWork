@@ -1,0 +1,102 @@
+
+--Создание БД
+CREATE DATABASE "bookDB"
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    LOCALE_PROVIDER = 'libc'
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False;
+
+--Создание таблицы городов
+CREATE TABLE city(
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(70)
+);
+
+--Создание таблицы покупатели
+CREATE TABLE customer(
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(70)
+);
+
+
+--Создпние связующей таблицы
+CREATE TABLE customer_city(
+	customer_id INT REFERENCES customer(id),
+	city_id INT REFERENCES city(id),
+	PRIMARY KEY(customer_id, city_id)
+);
+
+--Наполнение таблицы городов
+INSERT INTO city(name)
+VALUES ('Ленинград'),
+       ('Москва'),
+	   ('Екатеринбург'),
+	   ('Пермь'),
+	   ('Казань');
+
+--Наполнение таблицы покупателей
+INSERT INTO customer(name)
+VALUES ('Иван'),
+       ('Михаил'),
+	   ('Константин'),
+	   ('Дария'),
+	   ('Мария'),
+	   ('Виктория'),
+	   ('Ксения'),
+	   ('Олег'),
+	   ('Александр'),
+	   ('Наталья');
+
+--Изменение значений покупателей по id
+UPDATE customer
+SET name = 'Алексей'
+WHERE id = 6;
+
+UPDATE customer
+SET name = 'Фиона'
+WHERE id = 3;
+
+--Наполнение связующей таблицы
+INSERT INTO customer_city (customer_id, city_id)
+VALUES (1,5),
+       (2,1),
+	   (3,4),
+	   (4,2),
+	   (5,3),
+	   (6,5),
+	   (7,1),
+	   (8,4),
+	   (9,2),
+	   (10,3);
+
+--Объеденение таблиц
+SELECT c.name, ci.name
+FROM customer c
+JOIN customer_city cc ON c.id = cc.customer_id
+JOIN city ci ON cc.city_id = ci.id;
+
+--Изменение значений в таблице город по названию
+UPDATE city
+SET name = 'Санкт - Петербург'
+WHERE name = 'Ленинград';
+
+--Удаление покупателя из всех таблиц
+DELETE FROM customer_city
+WHERE customer_id = 8
+DELETE FROM customer
+WHERE id = 8;
+
+--Ввывод всех покупателей отсортированных по id
+SELECT * FROM customer ORDER BY id;
+
+
+--ВВывод всех покупателей город которых СПБ с сортировкой по алфавиту
+SELECT c.name, ci.name
+FROM customer c
+JOIN customer_city cc ON c.id = cc.customer_id
+JOIN city ci ON cc.city_id = ci.id
+WHERE city_id = 1
+ORDER BY c.name;
+
