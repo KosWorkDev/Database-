@@ -1,0 +1,143 @@
+--Создание таблицы книги после созданий таблиц издательство и автор
+CREATE TABLE book (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(70) NOT NULL,
+    author_id INT,
+    publ_house_id INT,
+    
+    CONSTRAINT fk_book_author
+        FOREIGN KEY (author_id) REFERENCES author(id),
+        
+    CONSTRAINT fk_book_publ_house
+        FOREIGN KEY (publ_house_id) REFERENCES publishing_house(id)
+);
+
+--Создание таблицы автор
+CREATE TABLE author(
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(70)
+);
+--Создание таблицы издательство
+CREATE TABLE publishing_house(
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(70)
+);
+--Создание связующей таблицы книги-автор
+CREATE TABLE book_author (
+    book_id INT,
+    author_id INT,
+    PRIMARY KEY (book_id, author_id),
+    FOREIGN KEY (book_id) REFERENCES book(id),
+    FOREIGN KEY (author_id) REFERENCES author(id)
+);
+--Наполнение таблицы автор
+INSERT INTO author(name)
+VALUES ('Л.Н. Толстой'),
+       ('П.П. Бажов'),
+	   ('Ф.М. Достоевский'),
+	   ('А.П Чехов');
+--Наполнение названий книг
+INSERT INTO book(name)
+VALUES ('Анна Каренина'),
+       ('Война и мир'),
+	   ('Толстой и Бажов'),
+	   ('Медной горы хозяйка'),
+	   ('Серебренное копытцо'),
+	   ('Бажов и Достоевский'),
+	   ('Преступление и наказание'),
+	   ('Идиот'),
+	   ('Достоевский и Чехов'),
+	   ('Тарас Бульба'),
+	   ('Медведь');
+--Наполнение издательств
+INSERT INTO publishing_house(name)
+VALUES ('Просвящение'),
+	   ('Стрекоза'),
+	   ('Москва');
+--Заполнение связуюшей таблицы
+INSERT INTO book_author (book_id, author_id)
+VALUES (1,1),
+       (2,1),
+	   (3,1),
+	   (3,2),
+	   (4,2),
+	   (5,2),
+	   (6,2),
+	   (6,3),
+	   (7,3),
+	   (8,3),
+	   (9,3),
+	   (9,4),
+	   (10,4),
+	   (11,4);
+/*
+Выводит книги и авторов, но если одну книгу написали два автора
+то он выводит одну книгу два раза. Как от этого избавиться?
+*/
+SELECT b.name AS book, a.name AS author
+FROM book b
+JOIN book_author ba ON b.id = ba.book_id
+JOIN author a ON ba.author_id = a.id;
+
+
+--ДЗ № 7-8
+
+-- Добавляем колонку в существующию таблицу
+ALTER TABLE book ADD COLUMN price INT DEFAULT 0;
+
+
+--Добавление значений уже существующих картежей
+UPDATE book 
+--SET price = 764 WHERE id = 1
+--SET price = 132 WHERE id = 2
+--SET price = 567 WHERE id = 3
+--SET price = 429 WHERE id = 4
+--SET price = 954 WHERE id = 5
+--SET price = 823 WHERE id = 6
+--SET price = 334 WHERE id = 7
+--SET price = 157 WHERE id = 8
+--SET price = 931 WHERE id = 9
+--SET price = 663 WHERE id = 10
+SET price = 947 WHERE id = 11;
+
+--Вывод средней, минимальной и максимальной цены
+SELECT 
+    ROUND (AVG(price), 2) AS "среднее значение",
+    MIN(price) AS "минимальная цена",
+    MAX(price) AS "максимальная цена"
+FROM book;
+
+--Колличество книг у автора
+SELECT a.name AS "автор", COUNT(ab.book_id) AS "колличество книг"
+FROM author a
+JOIN book_author ab ON a.id = ab.author_id
+GROUP BY a.name;
+
+--Средняя цена книги каждого автора
+SELECT a.name AS "автор", COUNT(b.id) AS "колличество книг", 
+    ROUND (AVG(b.price), 2) AS "средняя стоимость"
+FROM author a
+JOIN book_author ab ON a.id = ab.author_id
+JOIN book b ON ab.book_id = b.id
+GROUP BY a.name;
+
+--Добавление авторов
+INSERT INTO author (name) 
+VALUES ('А.С. Пушкин'),
+       ('М.Н. Ломоносов');
+
+--Выводим авторов у которых книги NULL
+SELECT a.name AS "автор"
+FROM author a
+LEFT JOIN book_author ab ON a.id = ab.author_id
+WHERE ab.book_id IS NULL;
+
+--ВЫводим авторов у которых колличество книг 0
+SELECT a.name AS "автор"
+FROM author a
+LEFT JOIN book_author ab ON a.id = ab.author_id
+GROUP BY a.name
+HAVING COUNT(ab.book_id) = 0;
+
+
+
