@@ -1,0 +1,110 @@
+-- Дз 9-10 NOT NULL, DEFAULT уже использовал ранее
+
+-- Добавление колоннки с проверкой
+ALTER TABLE IF EXISTS public.book
+    ADD COLUMN circulation INTEGER  CHECK (circulation >0 );
+
+-- Главная иерархия 
+CREATE TABLE controls (
+		id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		name VARCHAR(70) NOT NULL,
+		name_departament VARCHAR(100)
+);
+
+-- Подкатегория controls
+CREATE TABLE deputy (
+		id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		parent_id BIGINT,
+		name VARCHAR(70) NOT NULL,
+		name_departament VARCHAR(100)
+);
+
+-- Подкатегория deputy
+CREATE TABLE worker (
+		id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		parent_id BIGINT,
+		name VARCHAR(70) NOT NULL,
+		name_departament VARCHAR(100)
+);
+
+--Наполнение главной таблицы
+INSERT INTO controls (name, name_departament)
+VALUES ('Дмитрий Пумпянский','Директор по снабжению'),
+		('Кирилл Мостырин','Директор по сбыту'),
+		('Анастасия Цветаева','Директор по финансам');
+
+-- Наполнение второго уровня
+INSERT INTO deputy (name, name_departament, parent_id)
+VALUES ('Михаил Гончаров','СБ по снабжению', 1),
+		('Алексей Калинин','СБ по сбыту', 2),
+		('Григорий Полетаев','СБ по финансам', 3);
+
+-- Наполнение третьего уровня
+INSERT INTO worker (name, name_departament, parent_id)
+VALUES ('Мария Штакеева','менеджер по закупкам', 1),
+		('Арина Бармина','контроль качества закупок', 1),
+		('Денис Батраков','склад', 1),
+		('Никита Баранков','старший группы продавцов', 2),
+		('Илья Станков','менеджер по продажам', 2),
+		('Егор Белобродов','аналитик продаж', 2),
+		('Светлана Воронко','главный бухгалтер', 3),
+		('Ирина Домрачева','отдел расходов', 3),
+		('Юлия Кравченкова','отдел прихода', 3);
+
+-- Связующия таблица 1-2
+CREATE TABLE controls_deputy (
+		id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		controls_id BIGINT,
+		deputy_id BIGINT,
+
+		CONSTRAINT fk_controls_id_id 
+		FOREIGN KEY (controls_id) REFERENCES controls(id)
+		ON DELETE CASCADE,
+		CONSTRAINT fk_deputy_id_id 
+		FOREIGN KEY (deputy_id) REFERENCES deputy(id)
+		ON DELETE CASCADE
+);
+
+--Связующая таблица 2-3
+CREATE TABLE deputy_worker (
+		id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		worker_id BIGINT,
+		deputy_id BIGINT,
+
+		CONSTRAINT fk_worker_id_id 
+		FOREIGN KEY (worker_id) REFERENCES worker(id)
+		ON DELETE CASCADE,
+		CONSTRAINT fk_deputy_id_id 
+		FOREIGN KEY (deputy_id) REFERENCES deputy(id)
+		ON DELETE CASCADE
+);
+
+-- Наполнение связующей таблицы
+INSERT INTO controls_deputy (controls_id,deputy_id )
+VALUES (1,1),
+		(2,2),
+		(3,3);
+
+-- Наполнение связующей таблицы
+INSERT INTO deputy_worker (deputy_id, worker_id )
+VALUES (1,1),
+		(1,2),
+		(1,3),
+		(2,4),
+		(2,5),
+		(2,6),
+		(3,7),
+		(3,8),
+		(3,9);
+
+
+--Ввывод работяг с  руководителями и руководителями руководителей
+SELECT d.name AS "Управление", d.name_departament AS "Подразделение",
+		w.name AS "Рабочий", w.name_departament AS "Отдел",
+		c.name AS "Директор"
+FROM deputy d
+JOIN deputy_worker dw ON  d.id = dw.deputy_id 
+JOIN worker w ON   dw.worker_id = w.id
+JOIN controls c ON d.parent_id = c.id
+ORDER BY w.name_departament;
+
