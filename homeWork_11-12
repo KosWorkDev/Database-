@@ -1,0 +1,89 @@
+--Добавление колонки в таблицу
+ALTER TABLE book
+ADD COLUMN  "pages" BIGINT;
+
+--Наполнение новой колонки
+UPDATE book 
+--SET pages = 125 WHERE id=1
+--SET pages = 96 WHERE id=2 
+--SET pages = 587 WHERE id=3
+--SET pages = 325 WHERE id=4
+--SET pages = 277 WHERE id=5 
+--SET pages = 731 WHERE id=6 
+--SET pages = 553 WHERE id=7 
+--SET pages = 364 WHERE id=8 
+--SET pages = 651 WHERE id=9
+--SET pages = 356 WHERE id=10 
+SET pages = 987 WHERE id=11;
+
+--Книги и колличество страниц
+SELECT name AS "Название книги", pages AS "Кол-во страниц" 
+FROM book
+WHERE pages > (SELECT AVG(b.pages) FROM book b)
+ORDER BY name;
+
+--Добавление новой колонки
+ALTER TABLE book
+ADD COLUMN  "circulation" BIGINT;
+
+--Наполнение новой колонки
+UPDATE book 
+--SET circulation = 33 WHERE id=1
+--SET circulation = 35 WHERE id=2 
+--SET circulation = 65 WHERE id=3
+--SET circulation = 12 WHERE id=4
+--SET circulation = 28 WHERE id=5 
+--SET circulation = 46 WHERE id=6 
+--SET circulation = 9 WHERE id=7 
+--SET circulation = 51 WHERE id=8 
+--SET circulation = 86 WHERE id=9
+--SET circulation = 43 WHERE id=10 
+--SET circulation = 91 WHERE id=11;
+
+--Добавление новой колонки
+ALTER TABLE book
+ADD COLUMN  "year" BIGINT;
+
+--Наполнение новой колонки
+UPDATE book 
+--SET year = 1845 WHERE id=1
+--SET year = 1903 WHERE id=2 
+--SET year = 1975 WHERE id=3
+--SET year = 1934 WHERE id=4
+--SET year = 1987 WHERE id=5 
+--SET year = 1995 WHERE id=6 
+--SET year = 2001 WHERE id=7 
+--SET year = 2003 WHERE id=8 
+--SET year = 1986 WHERE id=9
+--SET year = 2010 WHERE id=10 
+--SET year = 2015 WHERE id=11;
+
+--Самая свежая книга
+SELECT name AS "Название книги", year AS "Год публикации"
+FROM book
+WHERE year = (SELECT MAX(b.year) FROM book b )
+ORDER BY name;
+
+--Стоимость книг 
+SELECT * FROM(SELECT name, SUM(circulation * price) AS total FROM book
+		GROUP BY name)
+ORDER BY total;
+
+--Стоимость всех экземпляров
+WITH total_price AS (SELECT name, SUM(circulation * price) AS total FROM book
+		GROUP BY name)
+SELECT * FROM total_price
+ORDER BY name;
+
+--Все книги с разделение на столетия
+SELECT b.name AS "Название книги", b.year AS "Год публикации", 
+				a.name AS "Автор",
+CASE 
+	WHEN year < 1900 THEN 'Книга позапрошлого столетия'
+	WHEN year > 1900 AND year <2000 THEN 'Книга прошлого столетия' 
+	WHEN year > 1900 THEN 'Книга нашего столетия' 
+	END
+FROM book b
+JOIN book_author ba ON ba.book_id = b.id
+JOIN author a ON a.id = ba.author_id
+;
