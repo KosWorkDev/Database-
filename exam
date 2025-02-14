@@ -1,0 +1,135 @@
+--Создание БД
+CREATE DATABASE "Centr_auto"
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    LOCALE_PROVIDER = 'libc'
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False;
+
+-- Создание ENUM районы
+CREATE TYPE district AS ENUM ('centr', 'south', 'north','west','east');
+
+-- Создаём таблицу покупателей
+CREATE TABLE customer(
+	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	name VARCHAR(70),
+	district_cus district,
+	wallet BIGINT
+);
+
+-- Наполняем таблицу покупателей
+INSERT INTO customer(name, district_cus, wallet)
+VALUES ('Иван','centr', 15890234),
+		('Анна','north', 10653800),
+		('Михаил','south', 7536980),
+		('Маруся','west', 13890456),
+		('Николай','east', 13890456);
+
+-- Создаём таблицу диллерских центров
+CREATE TABLE diller(
+	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	name VARCHAR(70),
+	district_dill district
+);
+
+-- Наполняем таблицу диллер
+INSERT INTO diller(name,district_dill)
+VALUES ('Окамми-Центр','centr'),
+       ('Окамми-Север','north'),
+       ('Окамми-ЮГ','south'),
+       ('Окамми-Восток','west'),
+       ('Окамми-Запад','east');
+
+-- Создаем таблицу с автомобилями
+CREATE TABLE auto(
+	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	marka VARCHAR(100),
+	model VARCHAR(100),
+	price BIGINT
+);
+
+-- Наполняем таблицу авто
+INSERT INTO auto(marka, model, price)
+VALUES ('Honda','Accord', 4683456),
+		('Tesla','Model X', 14980357),
+		('Lada','Vesta', 3765483),
+		('Toyota','Land Cruser 200', 9870451),
+		('Lexus','LX 570', 14857385),
+		('Mitsubisi','Lancer EVOLUTION', 14543128),
+		('Subaru','Impressa', 7126890),
+		('Ford','SHELBY', 2876222),
+		('Opel','Astra H', 950329),
+		('Lada','VAZ 2106',583290),
+		('Zeekr','001',14500000),
+		('BMW','M5',6900340),
+		('Mercedes','W 220', 12589450),
+		('Firrari','F-50',18563295),
+		('Masserati','xplot', 3657821),
+		('Renault','Arkana',3980365);
+
+-- Создаём связующую таблицу в каких центрах продают авто
+CREATE TABLE diller_auto(
+	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	id_diller BIGINT,
+	id_auto BIGINT,
+
+	CONSTRAINT fk_diller FOREIGN KEY (id_diller) REFERENCES diller(id)
+	ON DELETE CASCADE,
+	CONSTRAINT fk_auto FOREIGN KEY (id_auto) REFERENCES auto(id)
+	ON DELETE CASCADE
+);
+
+-- Наполняем связующию таблицу
+INSERT INTO diller_auto(id_diller, id_auto )
+VALUES (1,2), (1,5), (1,6), (1,11), (1,13), (1,14), 
+		(2,1), (2,2), (2,4), (2,5), (2,6), (2,7), (2,8), 
+		(3,2), (3,3), (3,7), (3,9), (3,10), (3,16), (3,14), (3,15),
+		(4,16), (4,14), (4,13), (4,9), (4,10), (4,3),
+		(5,1), (5,3), (5,4), (5,5), (5,6), (5,7), (5,9), (5,10), (5,11), (5,12);
+
+-- Ввыводим авто по центрам продаж
+SELECT a.marka AS "Марка авто",a.model AS "Модель авто", d.name AS "Центр продаж"
+FROM auto a
+JOIN diller_auto da ON da.id_auto = a.id
+JOIN diller d ON da.id_diller = d.id
+WHERE d.id = 1
+ORDER BY d.name;
+
+--Добавляем новое авто
+INSERT INTO auto(marka, model, price)
+VALUES ('JAC','J7', 5980342);
+
+--Распределяем по диллерским центрам
+INSERT INTO diller_auto(id_diller, id_auto)
+VALUES(4,17),
+		(2,17);
+
+--Добавляем нового покупателя
+INSERT INTO customer(name, district_cus, wallet)
+VALUES('Сергей','south', 10500000);
+
+-- Указываем id пользователя и видим доступные ему авто в его районе
+-- или (вместо d.district_dill = c.district_cus = ставим <>) в других районах
+SELECT a.marka AS "Марка авто",a.model AS "Модель авто", 
+		 a.price AS "Стоимость авто"
+FROM auto a
+JOIN diller_auto da ON da.id_auto = a.id
+JOIN diller d ON da.id_diller = d.id
+JOIN customer c ON d.district_dill = c.district_cus
+WHERE c.id = 4 AND c.wallet > a.price
+GROUP BY a.marka, a.model, a.price
+ORDER BY a.marka DESC;
+
+--Таблица с дополнительной коллонкой разделения авто по комфорту
+SELECT a.marka AS "Марка", a.model AS "Модель", 
+				a.price AS "Цена",
+CASE 
+	WHEN price < 5000000 THEN 'Эконом'
+	WHEN price > 5000000 AND price < 10000000 THEN 'Комфорт' 
+	WHEN price > 10000000 THEN 'Бизнес' 
+	END AS ""
+FROM auto a
+JOIN diller_auto da ON da.id_auto = a.id
+GROUP BY a.marka, a.model, a.price
+ORDER BY a.marka;
